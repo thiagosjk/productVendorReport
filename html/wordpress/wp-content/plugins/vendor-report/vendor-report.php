@@ -69,6 +69,7 @@
                     <thead>
                         <tr>
                             <th>' . __( 'ID', 'wc_product_vendors' ) . '</th>
+                            <th>' . __( 'Status', 'wc_product_vendors' ) . '</th>
                             <th>' . __( 'Nome', 'wc_product_vendors' ) . '</th>
                             <th>' . __( 'Email', 'wc_product_vendors' ) . '</th>
                             <th>' . __( 'Produto', 'wc_product_vendors' ) . '</th>
@@ -80,6 +81,12 @@
 
         $count = 0;
         foreach( $sales as $sale ) {
+/*
+echo "<pre>";
+print_r($orders);
+echo "</pre>";
+exit();
+*/
         	$count++;
             $tempHtml = '';
             $fist_name = get_post_meta( $sale->ID, '_billing_first_name', true );
@@ -99,15 +106,11 @@
             $paid_date = get_post_meta( $sale->ID, '_paid_date', true );
             $complete_date = get_post_meta( $sale->ID, '_completed_date', true );
 
-            $tempHtml .= '<tr '. (($count%2==0)?'class="alternate"':'').'>
-                            <td>' . $sale->ID . '</td>
-                            <td>' . $fist_name . ' ' . $last_name . '</td>
-                            <td>' . $email . '</td>
-                            <td>';
 
             $orders = new WC_Order( $sale->ID );
-            $add = false;
 
+            $add = false;
+            $tempItemsHtml = '';
             foreach( $orders->get_items() as $order ) {
                 $args = array(
                     'author' => $user_id,
@@ -117,18 +120,20 @@
                 );
                 $products = get_posts( $args );
 
-                $tempHtml .= '<a href="' . esc_url( get_permalink( $order["product_id"] ) ) . '">' . $products[0]->post_title. '</a> - ' . $order["item_meta"]['_qty'][0] . '<br/>' ;
-
-                if(!$add && sizeof($products)>0)
-                    $add = true;
+                $tempItemsHtml .=  '<a href="' . esc_url( get_permalink( $order["product_id"] ) ) . '">' . $products[0]->post_title. '</a> - ' . $order["item_meta"]['_qty'][0] . '<br/>' ;
             }
 
-            $tempHtml .=                 '</td>
+            $tempHtml .= '<tr '. (($count%2==0)?'class="alternate"':'').'>
+                            <td>' . $sale->ID . '</td>
+                            <td>' . $orders->status . '</td>
+                            <td>' . $fist_name . ' ' . $last_name . '</td>
+                            <td>' . $email . '</td>
+                            <td>' . $tempItemsHtml . '</td>
                         <td>' . $total . '</td>
                         <td>' . $complete_date . '</td>
                       </tr>';
 
-            if($add)
+            //if($add)
                 $html .= $tempHtml;
 
         }
